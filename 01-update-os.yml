@@ -1,0 +1,51 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  tasks:
+
+    - name: add zulu repo
+      yum_repository:
+        name: zulu-13
+        description: zulu-13 - Azul Systems Inc., Zulu packages for $basearch
+        baseurl: http://repos.azulsystems.com/rhel/$releasever/$basearch/
+        gpgcheck: yes
+        gpgkey: http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+    - name: install the latest version of zulu 13
+      yum:
+        name: zulu-13
+        enablerepo: zulu-13
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+
+    - name: Install azul key [deb]
+      command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xB1998361219BD9C9
+      args:
+        warn: no
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+    - name: add zulu repo
+      apt:
+        deb: https://cdn.azul.com/zulu/bin/zulu-repo_1.0.0-2_all.deb
+        force: true
+        update_cache: true
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+    # - name: install the latest version of zulu 13
+    #   apt:
+    #     deb: zulu13-jre
+    #     update_cache: true
+    #     state: present
+    #     install_recommends: false
+    #   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+    - name: install the latest version of zulu 13 (apt task above not working!)
+      command: apt install zulu13-jre -y
+      args:
+        warn: no
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+

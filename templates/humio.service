@@ -1,0 +1,21 @@
+[Unit]
+Description=Humio service
+After=network.service
+
+[Service]
+Type=notify
+Restart=on-failure
+RestartSec=30
+User=humio
+Group=humio
+LimitNOFILE=65535
+LimitNPROC=65535
+TimeoutStartSec=300
+EnvironmentFile=/etc/humio/server.conf
+WorkingDirectory=/data/humio-primary
+ExecStart=/usr/bin/java -server -Xms32G -Xmx32G -Xss2M -XX:MaxDirectMemorySize=64G -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:+ClassUnloadingWithConcurrentMark -XX:+ScavengeBeforeFullGC -XX:+UseTLAB -XX:+ResizeTLAB -XX:+ExplicitGCInvokesConcurrent -XX:+DisableExplicitGC -XX:+ParallelRefProcEnabled -XX:+UseTransparentHugePages -XX:+UseNUMA -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dsun.net.inetaddr.ttl=60 -Dnetworkaddress.cache.ttl=60 -Dsun.net.inetaddr.negative.ttl=10 -Dakka.log-config-on-start=on -XX:+UnlockDiagnosticVMOptions -XX:-UseBiasedLocking --add-exports java.base/jdk.internal.util=ALL-UNNAMED -XX:CompileCommand=dontinline,com/humio/util/HotspotUtilsJ.dontInline -Xlog:safepoint*,gc*,gc+ref=debug,gc+heap=debug,gc+age=trace:file=/var/log/humio/gc_humio.log:time,tags:filecount=5,filesize=102400 -jar /opt/humio/server.jar
+CapabilityBoundingSet=CAP_SYS_NICE
+AmbientCapabilities=CAP_SYS_NICE
+
+[Install]
+WantedBy=default.target

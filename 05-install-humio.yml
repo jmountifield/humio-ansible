@@ -1,0 +1,74 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  # serial: 1
+  tasks:
+
+    - name: create Humio directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: humio
+        group: humio
+      loop:
+        - /etc/humio
+        - /opt/humio
+        - /var/log/humio
+        - /data/humio-primary
+        - /data/humio-secondary
+
+    - name: Extract Humio into /opt/
+      get_url:
+        url: https://repo.humio.com/repository/maven-releases/com/humio/server/1.16.1/server-1.16.1.jar
+        dest: /opt/humio/server-1.16.1.jar
+
+    - name: Create a symbolic link
+      file:
+        src: /opt/humio/server-1.16.1.jar
+        dest: /opt/humio/server.jar
+        owner: root
+        group: root
+        state: link
+
+    - name: Configure Humio server.conf
+      template:
+        src: server.conf.j2
+        dest: /etc/humio/server.conf
+        owner: humio
+        group: humio
+
+    - name: Create a Humio service
+      copy:
+        src: templates/humio.service
+        dest: /etc/systemd/system/humio.service
+        owner: root
+        group: root
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        recurse: yes
+        owner: humio
+        group: humio
+      loop:
+        - /etc/humio
+        - /opt/humio
+        - /var/log/humio
+        - /data/humio-primary
+        - /data/humio-secondary
+
+    - name: Put SELinux in permissive mode, logging actions that would be blocked.
+      selinux:
+        policy: targeted
+        state: permissive
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+    - name: Restart Humio and enable as service
+      service:
+        name: humio
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+      throttle: 1

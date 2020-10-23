@@ -1,0 +1,70 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  tasks:
+
+    - name: Extract zookeeper into /opt/
+      unarchive:
+        remote_src: yes
+        validate_certs: false
+        src: http://us.mirrors.quenda.co/apache/zookeeper/zookeeper-3.5.8/apache-zookeeper-3.5.8-bin.tar.gz
+        dest: /opt/
+
+    - name: Create a symbolic link
+      file:
+        src: /opt/apache-zookeeper-3.5.8-bin
+        dest: /opt/zookeeper
+        owner: zookeeper
+        group: zookeeper
+        state: link
+
+    - name: Create zookeeper data directory
+      file:
+        path: /var/zookeeper/data
+        state: directory
+
+    - name: Configure ZooKeeper zoo.cfg
+      template:
+        src: zoo.cfg.j2
+        dest: /opt/zookeeper/conf/zoo.cfg
+        owner: zookeeper
+        group: zookeeper
+
+    - name: Configure ZooKeeper ID
+      template:
+        src: myid.j2
+        dest: /var/zookeeper/data/myid
+        owner: zookeeper
+        group: zookeeper
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: /opt/apache-zookeeper-3.5.8-bin
+        state: directory
+        recurse: yes
+        owner: zookeeper
+        group: zookeeper
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: /var/zookeeper/data
+        state: directory
+        recurse: yes
+        owner: zookeeper
+        group: zookeeper
+
+    - name: Create a zookeeper service
+      copy:
+        src: templates/zookeeper.service
+        dest: /etc/systemd/system/zookeeper.service
+        owner: root
+        group: root
+
+    - name: Restart zookeeper and enable as service
+      service:
+        name: zookeeper
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+

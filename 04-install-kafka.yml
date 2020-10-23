@@ -1,0 +1,88 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  tasks:
+
+    - name: Extract kafka into /opt/
+      unarchive:
+        remote_src: yes
+        src: https://downloads.apache.org/kafka/2.6.0/kafka_2.13-2.6.0.tgz
+        dest: /opt/
+
+    - name: Create a symbolic link
+      file:
+        src: /opt/kafka_2.13-2.6.0
+        dest: /opt/kafka
+        owner: root
+        group: root
+        state: link
+
+    - name: Create kafka log directory
+      file:
+        path: /var/log/kafka
+        state: directory
+
+    - name: Create kafka data directory
+      file:
+        path: /var/kafka-data
+        state: directory
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: /var/log/kafka
+        state: directory
+        recurse: yes
+        owner: kafka
+        group: kafka
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: /var/kafka-data
+        state: directory
+        recurse: yes
+        owner: kafka
+        group: kafka
+
+    - name: Set the broker ID
+      lineinfile:
+        path: /opt/kafka/config/server.properties
+        regexp: '^broker\.id='
+        line: "broker.id={{cluster_index}}"
+
+    - name: Set the Log directory
+      lineinfile:
+        path: /opt/kafka/config/server.properties
+        regexp: '^log\.dirs='
+        line: "log.dirs=/var/kafka-data"
+
+    - name: Add option for deleting topics
+      lineinfile:
+        path: /opt/kafka/config/server.properties
+        regexp: '^delete\.topic\.enable='
+        line: "delete.topic.enable=true"
+        insertafter: EOF
+
+    - name: Recursively change ownership of a directory
+      file:
+        path: /opt/kafka_2.13-2.6.0
+        state: directory
+        recurse: yes
+        owner: kafka
+        group: kafka
+
+    - name: Create a kafka service
+      copy:
+        src: templates/kafka.service
+        dest: /etc/systemd/system/kafka.service
+        owner: root
+        group: root
+
+    - name: Restart kafka and enable as service
+      service:
+        name: kafka
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+
+

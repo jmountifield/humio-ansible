@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  tasks:
+
+  - name: Add the user 'humio'
+    user:
+      name: humio
+      shell: /bin/false
+      system: yes
+      append: no
+      create_home: no
+    
+  - name: Add the user 'zookeeper'
+    user:
+      name: zookeeper
+      shell: /bin/false
+      system: yes
+      append: no
+      create_home: no
+    
+  - name: Add the user 'kafka'
+    user:
+      name: kafka
+      shell: /bin/false
+      system: yes
+      append: no
+      create_home: no

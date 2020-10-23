@@ -1,0 +1,17 @@
+DIRECTORY=/data/humio-primary
+HUMIO_AUDITLOG_DIR=/var/log/humio
+HUMIO_DEBUGLOG_DIR=/var/log/humio
+HUMIO_PORT=8080
+ELASTIC_PORT=9200
+KAFKA_SERVERS={{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(':9092,') }}:9092
+ZOOKEEPER_URL={{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(':2181,') }}:2181
+EXTERNAL_URL=http://{{ ansible_facts.fqdn }}:8080
+PUBLIC_URL=https://demo.humio.com
+HUMIO_SOCKET_BIND=0.0.0.0
+HUMIO_HTTP_BIND=0.0.0.0
+USING_EPHEMERAL_DISKS=false
+AUTHENTICATION_METHOD=single-user
+SINGLE_USER_PASSWORD=Aa.1234
+INGEST_QUEUE_REPLICATION_FACTOR=2
+SECONDARY_DATA_DIRECTORY=/data/humio-secondary
+PRIMARY_STORAGE_PERCENTAGE=70

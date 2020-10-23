@@ -1,0 +1,6 @@
+---
+- import_playbook: 01-update-os.yml
+- import_playbook: 02-create-users.yml
+- import_playbook: 03-install-zookeeper.yml
+- import_playbook: 04-install-kafka.yml
+- import_playbook: 05-install-humio.yml
